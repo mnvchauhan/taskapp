@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{% block title %}Alpha Research Server{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+
+    <div class="app-container {% if session.get('user_id') and g.user %}logged-in{% endif %}">
+        
+        <!-- Sidebar (Desktop/Laptop ONLY) -->
+        {% if session.get('user_id') and g.user %}
+        <aside class="desktop-sidebar">
+            <div>
+                <div class="sidebar-brand">
+                    <div class="logo-dot"></div>
+                    <span class="app-title" style="background: linear-gradient(135deg, var(--text-white) 30%, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Alpha Research</span>
+                </div>
+                
+                <!-- Balance Card inside Sidebar -->
+                <div class="sidebar-balance-card">
+                    <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700;">Your Balance</div>
+                    <div class="sidebar-balance-value">₹{{ "%.2f"|format(g.user.balance) }}</div>
+                </div>
+
+                <!-- Nav links in Sidebar -->
+                <nav class="sidebar-nav">
+                    <a href="{{ url_for('dashboard') }}" class="sidebar-nav-item {% if active_tab == 'home' %}active{% endif %}">
+                        <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                        <span>Available Surveys</span>
+                    </a>
+                    <a href="{{ url_for('wallet') }}" class="sidebar-nav-item {% if active_tab == 'wallet' %}active{% endif %}">
+                        <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="12" y1="4" x2="12" y2="20"></line></svg>
+                        <span>Wallet & Cashout</span>
+                    </a>
+                    <a href="{{ url_for('referrals') }}" class="sidebar-nav-item {% if active_tab == 'invite' %}active{% endif %}">
+                        <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        <span>Invite Friends</span>
+                    </a>
+                </nav>
+            </div>
+            
+            <div class="sidebar-footer">
+                <a href="{{ url_for('profile') }}" class="sidebar-nav-item {% if active_tab == 'profile' %}active{% endif %}">
+                    <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <span>My Profile</span>
+                </a>
+                <a href="{{ url_for('logout') }}" class="sidebar-logout">
+                    <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    <span>Logout Account</span>
+                </a>
+            </div>
+        </aside>
+        {% endif %}
+
+        <!-- Right Side Main Window (Desktop wrapper; acts as default content pane on mobile) -->
+        <div class="main-window">
+            
+            <!-- Header Bar -->
+            <header class="app-header">
+                <div class="logo-group">
+                    <div class="logo-dot"></div>
+                    <span class="app-title">Alpha Research</span>
+                </div>
+                {% if session.get('user_id') and g.user %}
+                    <a href="{{ url_for('wallet') }}" class="header-balance" id="headerBalanceBtn">
+                        <span class="balance-currency">₹</span><span id="headerBalanceValue">{{ "%.2f"|format(g.user.balance) }}</span>
+                    </a>
+                {% endif %}
+            </header>
+
+            <!-- Main Content Area -->
+            <main class="content-area">
+                
+                <!-- Flash Message System -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-container" id="flashContainer">
+                            {% for category, message in messages %}
+                                <div class="flash-message flash-{{ category }}">
+                                    {% if category == 'success' %}
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                    {% elif category == 'error' %}
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                                    {% elif category == 'warning' %}
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                    {% else %}
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                    {% endif %}
+                                    <span>{{ message }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </main>
+
+            <!-- Bottom Navigation Bar (Only visible when user logged in) -->
+            {% if session.get('user_id') %}
+                <nav class="bottom-nav">
+                    <a href="{{ url_for('dashboard') }}" class="nav-item {% if active_tab == 'home' %}active{% endif %}">
+                        <svg viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                        <span>Surveys</span>
+                    </a>
+                    <a href="{{ url_for('wallet') }}" class="nav-item {% if active_tab == 'wallet' %}active{% endif %}">
+                        <svg viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="12" y1="4" x2="12" y2="20"></line></svg>
+                        <span>Wallet</span>
+                    </a>
+                    <a href="{{ url_for('referrals') }}" class="nav-item {% if active_tab == 'invite' %}active{% endif %}">
+                        <svg viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        <span>Invite</span>
+                    </a>
+                    <a href="{{ url_for('profile') }}" class="nav-item {% if active_tab == 'profile' %}active{% endif %}">
+                        <svg viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        <span>Profile</span>
+                    </a>
+                </nav>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    <!-- Core Javascript Code -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

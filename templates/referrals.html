@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}Invite Friends - Alpha Research Server{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="login-header-text" style="margin-bottom: 24px; text-align: left; margin-top: 10px;">
+    <h1 style="font-size: 28px;">Invite & Earn</h1>
+    <p style="font-size: 13px;">Earn commissions on every friend who registers using your code!</p>
+</div>
+
+<!-- Stats Summary Grid -->
+<div class="stats-grid">
+    <div class="stat-box">
+        <div class="stat-val highlight" style="color: var(--primary);">{{ count }}</div>
+        <div class="stat-lbl">Friends Joined</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-val highlight" style="color: var(--primary);">₹{{ "%.2f"|format(earnings) }}</div>
+        <div class="stat-lbl">Referral Income</div>
+    </div>
+</div>
+
+<!-- Copy Referral Code Box -->
+<div class="glass-card" style="margin-bottom: 24px; box-shadow: var(--shadow-premium);">
+    <span class="form-label" style="margin-bottom: 2px;">Your Personal Invite Code</span>
+    <div class="referral-box">
+        <span class="ref-code-value" id="inviteCode" style="color: var(--primary);">{{ referral_code }}</span>
+        <button class="btn-copy" onclick="copyReferralCode()" id="copyBtn" title="Copy code to clipboard">
+            <svg id="copyIcon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+        </button>
+    </div>
+    <p style="font-size: 12px; color: var(--text-muted); text-align: center; margin-top: -8px;">
+        Tap the copy icon to share your code via SMS, WhatsApp, or Socials.
+    </p>
+</div>
+
+<!-- Step Guide -->
+<div class="survey-section-title">
+    <span>How It Works</span>
+</div>
+<div class="glass-card" style="padding: 18px; margin-bottom: 24px; box-shadow: var(--shadow-premium);">
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; gap: 14px; align-items: flex-start;">
+            <div style="background-color: var(--primary-light); color: var(--primary); width: 28px; height: 28px; border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: var(--font-heading); font-size: 14px; flex-shrink: 0;">1</div>
+            <div>
+                <h4 style="font-size: 14px; color: var(--text-white); font-weight: 600; margin-bottom: 2px;">Share Your Code</h4>
+                <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">Send your code to friends, family, or followers on social media.</p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 14px; align-items: flex-start;">
+            <div style="background-color: var(--primary-light); color: var(--primary); width: 28px; height: 28px; border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: var(--font-heading); font-size: 14px; flex-shrink: 0;">2</div>
+            <div>
+                <h4 style="font-size: 14px; color: var(--text-white); font-weight: 600; margin-bottom: 2px;">They Get Welcome Bonus</h4>
+                <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">They instantly receive a welcome bonus of <strong>₹10.00</strong> when registering with your link.</p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 14px; align-items: flex-start;">
+            <div style="background-color: var(--primary-light); color: var(--primary); width: 28px; height: 28px; border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: var(--font-heading); font-size: 14px; flex-shrink: 0;">3</div>
+            <div>
+                <h4 style="font-size: 14px; color: var(--text-white); font-weight: 600; margin-bottom: 2px;">You Earn Instantly</h4>
+                <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">You get credited with <strong>₹20.00</strong> into your wallet as soon as they sign up!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Referred Friends List -->
+<div class="survey-section-title">
+    <span>Referred Friends</span>
+</div>
+<div class="txn-history-list">
+    {% if referred_users %}
+        {% for ref_user in referred_users %}
+            <div class="txn-item" style="box-shadow: var(--shadow-premium);">
+                <div class="txn-details">
+                    <span class="txn-title">@{{ ref_user.username }}</span>
+                    <span class="txn-sub">Joined on {{ ref_user.created_at.strftime('%d %b %Y') }}</span>
+                </div>
+                <div class="txn-value-status">
+                    <span class="txn-amount positive" style="font-size: 13px; color: var(--primary);">+₹20.00 Earned</span>
+                    <span class="status-badge status-completed">Completed</span>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="glass-card" style="text-align: center; padding: 24px 10px; color: var(--text-muted); font-size: 12px; line-height: 1.4; box-shadow: var(--shadow-premium);">
+            No referred friends yet. Share your code with your social group to start making instant money!
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function copyReferralCode() {
+        const inviteCode = document.getElementById('inviteCode').innerText;
+        
+        navigator.clipboard.writeText(inviteCode).then(() => {
+            const copyBtn = document.getElementById('copyBtn');
+            const copyIcon = document.getElementById('copyIcon');
+            
+            // Temporary visual feedback
+            copyBtn.style.color = 'var(--primary)';
+            copyIcon.innerHTML = '<polyline points="20 6 9 17 4 12"></polyline>'; // Checkmark
+            
+            // Flash a dynamic popup
+            showToastMessage('Referral Code copied to clipboard!', 'success');
+            
+            setTimeout(() => {
+                copyBtn.style.color = 'var(--text-muted)';
+                copyIcon.innerHTML = '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>'; // Restore icon
+            }, 1800);
+        }).catch(err => {
+            console.error('Failed to copy text: ', err);
+            alert('Your browser does not support automatic copying. Your code is: ' + inviteCode);
+        });
+    }
+</script>
+{% endblock %}

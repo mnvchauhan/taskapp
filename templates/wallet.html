@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}Wallet & Cashout - Alpha Research Server{% endblock %}
+
+{% block content %}
+<!-- Wallet Balance Card -->
+<div class="balance-hero" style="margin-bottom: 20px; background: linear-gradient(135deg, var(--bg-card) 40%, rgba(37, 99, 235, 0.05) 100%);">
+    <div class="balance-title">Available Payout Balance</div>
+    <div class="balance-amount">
+        <span class="balance-currency" style="color: var(--primary);">₹</span>
+        <span>{{ "%.2f"|format(g.user.balance) }}</span>
+    </div>
+    
+    <div class="progress-container">
+        <div class="progress-header">
+            <span>Threshold for withdrawal</span>
+            <span>{{ progress_percent }}% (₹{{ "%.0f"|format(threshold) }} required)</span>
+        </div>
+        <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width: {{ progress_percent }}%;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Cashout Options -->
+<div class="wallet-options-title">Select Withdrawal Method</div>
+<div class="cashout-methods">
+    <div class="cashout-card active" id="method_paypal" onclick="selectCashoutMethod('PayPal', 'email', 'PayPal Email Address', 'e.g., name@example.com')">
+        <div class="cashout-card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="12" y1="4" x2="12" y2="20"></line></svg>
+        </div>
+        <span class="cashout-name">PayPal</span>
+    </div>
+
+    <div class="cashout-card" id="method_upi" onclick="selectCashoutMethod('UPI / Paytm', 'text', 'UPI ID or Mobile Number', 'e.g., paytofriend@okaxis or 9876543210')">
+        <div class="cashout-card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+        </div>
+        <span class="cashout-name">UPI / Paytm</span>
+    </div>
+
+    <div class="cashout-card" id="method_amazon" onclick="selectCashoutMethod('Amazon Gift Card', 'email', 'Email Address for Voucher', 'e.g., shopper@example.com')">
+        <div class="cashout-card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+        </div>
+        <span class="cashout-name">Amazon Code</span>
+    </div>
+
+    <div class="cashout-card" id="method_gplay" onclick="selectCashoutMethod('Google Play Gift Card', 'email', 'Play Account Email', 'e.g., gamer@example.com')">
+        <div class="cashout-card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        </div>
+        <span class="cashout-name">Google Play</span>
+    </div>
+</div>
+
+<!-- Payout Input Box -->
+<div class="glass-card cashout-input-box active" id="cashoutInputBox" style="box-shadow: var(--shadow-premium);">
+    {% if g.user.balance >= threshold %}
+        <form action="{{ url_for('wallet') }}" method="POST" onsubmit="return validateWithdraw()">
+            <input type="hidden" name="method" id="selectedMethodInput" value="PayPal">
+            
+            <div class="form-group">
+                <label class="form-label" id="cashoutLabel" for="cashoutDetails">PayPal Email Address</label>
+                <input type="email" name="details" id="cashoutDetails" class="form-input" placeholder="e.g., name@example.com" required>
+            </div>
+            
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.4;">
+                ⚠️ You are cashing out your entire balance of <strong>₹{{ "%.2f"|format(g.user.balance) }}</strong>. Please double-check your credentials as transactions cannot be reversed once processed.
+            </p>
+
+            <button type="submit" class="btn">
+                <span>Request Payout (₹{{ "%.2f"|format(g.user.balance) }})</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+        </form>
+    {% else %}
+        <!-- Locked / Not Enough Funds state -->
+        <div style="text-align: center; padding: 10px 0;">
+            <div style="font-size: 24px; margin-bottom: 8px;">🔒</div>
+            <h4 style="font-size: 15px; margin-bottom: 4px; font-weight: 700;">Payout Locked</h4>
+            <p style="color: var(--text-muted); font-size: 12px; line-height: 1.4; max-width: 290px; margin: 0 auto 14px;">
+                You need a minimum balance of <strong>₹{{ "%.2f"|format(threshold) }}</strong> to request a payout. Complete more surveys to unlock withdrawals.
+            </p>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary" style="font-size: 13px; padding: 10px 14px; width: auto; display: inline-flex;">
+                <span>View Available Surveys</span>
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Transaction History List -->
+<div class="survey-section-title" style="margin-top: 24px;">
+    <span>Transaction History</span>
+</div>
+
+<div class="txn-history-list">
+    {% if transactions %}
+        {% for txn in transactions %}
+            <div class="txn-item">
+                <div class="txn-details">
+                    <span class="txn-title">{{ txn.method or 'Wallet Activity' }}</span>
+                    <span class="txn-sub">{{ txn.details or 'Processed' }}</span>
+                    <span class="txn-sub" style="font-size: 10px; margin-top: 2px;">{{ txn.timestamp.strftime('%d %b %Y, %I:%M %p') }}</span>
+                </div>
+                <div class="txn-value-status">
+                    <span class="txn-amount {% if txn.amount > 0 %}positive{% else %}negative{% endif %}" style="color: {% if txn.amount > 0 %}var(--primary){% else %}var(--danger){% endif %};">
+                        {% if txn.amount > 0 %}+{% endif %}₹{{ "%.2f"|format(txn.amount) }}
+                    </span>
+                    <span class="status-badge status-{{ txn.status }}">
+                        {{ txn.status }}
+                    </span>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <!-- Empty Transaction State -->
+        <div class="glass-card" style="text-align: center; padding: 24px 10px; color: var(--text-muted); font-size: 13px;">
+            No transactions found yet. Complete surveys or invite friends to make your first transaction!
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Handles changing selected cashout mechanism details
+    function selectCashoutMethod(methodName, inputType, labelText, placeholderText) {
+        // Toggle card highlighting
+        const cards = document.querySelectorAll('.cashout-card');
+        cards.forEach(card => card.classList.remove('active'));
+        
+        // Find which card was clicked and activate it
+        if (methodName === 'PayPal') document.getElementById('method_paypal').classList.add('active');
+        if (methodName === 'UPI / Paytm') document.getElementById('method_upi').classList.add('active');
+        if (methodName === 'Amazon Gift Card') document.getElementById('method_amazon').classList.add('active');
+        if (methodName === 'Google Play Gift Card') document.getElementById('method_gplay').classList.add('active');
+
+        // Update inputs if they exist (they are hidden for locked accounts)
+        const methodInput = document.getElementById('selectedMethodInput');
+        const detailsInput = document.getElementById('cashoutDetails');
+        const label = document.getElementById('cashoutLabel');
+
+        if (methodInput && detailsInput && label) {
+            methodInput.value = methodName;
+            label.innerText = labelText;
+            detailsInput.type = inputType;
+            detailsInput.placeholder = placeholderText;
+            detailsInput.value = ''; // Reset
+        }
+    }
+
+    function validateWithdraw() {
+        const details = document.getElementById('cashoutDetails').value.trim();
+        if (!details) {
+            alert('Please fill out the payout destination.');
+            return false;
+        }
+        return confirm('Are you sure you want to submit this payout request?');
+    }
+</script>
+{% endblock %}

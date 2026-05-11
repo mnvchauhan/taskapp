@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Alpha Research Server{% endblock %}
+
+{% block content %}
+<!-- Wallet Balance Progress Hero Card -->
+<div class="balance-hero" style="background: linear-gradient(135deg, var(--bg-card) 40%, rgba(37, 99, 235, 0.05) 100%);">
+    <div class="balance-title">Your Current Earnings</div>
+    <div class="balance-amount">
+        <span class="balance-currency" style="color: var(--primary);">₹</span>
+        <span id="heroBalanceValue">{{ "%.2f"|format(g.user.balance) }}</span>
+    </div>
+    
+    <!-- Payout Progress Tracking -->
+    <div class="progress-container">
+        <div class="progress-header">
+            <span>Progress to Minimum Payout</span>
+            <span id="progressText">{{ progress_percent }}% (₹{{ "%.0f"|format(threshold) }} min)</span>
+        </div>
+        <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="dashboardProgressBar" style="width: {{ progress_percent }}%;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Available Surveys Grid / List -->
+<div class="survey-section-title">
+    <span>Available Surveys</span>
+    <span class="survey-count-badge" id="surveyCountBadge">{{ surveys|length }}</span>
+</div>
+
+<div class="survey-list">
+    {% if surveys %}
+        {% for survey in surveys %}
+            <a href="{{ url_for('survey_run', survey_id=survey.id) }}" class="survey-card" style="animation-delay: {{ loop.index * 0.08 }}s;">
+                <div class="survey-info">
+                    <span class="survey-tag">{{ survey.category }}</span>
+                    <h3 class="survey-card-title">{{ survey.title }}</h3>
+                    <div class="survey-meta">
+                        <div class="survey-meta-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            <span>{{ survey.estimated_time }} min</span>
+                        </div>
+                        <div class="survey-meta-item star-rating">
+                            <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                            <span>{{ "%.1f"|format(survey.rating) }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="survey-reward-badge">
+                    <span class="reward-value">₹{{ "%.2f"|format(survey.reward) }}</span>
+                    <div class="reward-arrow">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                    </div>
+                </div>
+            </a>
+        {% endfor %}
+    {% else %}
+        <!-- Complete Empty State -->
+        <div class="glass-card" style="text-align: center; padding: 36px 20px; animation: slideUp 0.4s ease;">
+            <div style="font-size: 50px; margin-bottom: 14px;">🎉</div>
+            <h3 style="margin-bottom: 10px; font-size: 18px;">All Surveys Completed!</h3>
+            <p style="color: var(--text-muted); font-size: 13px; max-width: 280px; margin: 0 auto 20px;">You have completed all available surveys. Check back later for fresh polls and higher earnings!</p>
+            <a href="{{ url_for('referrals') }}" class="btn btn-secondary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <span>Invite Friends for ₹20.00</span>
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

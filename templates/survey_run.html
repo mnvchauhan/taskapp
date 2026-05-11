@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+
+{% block title %}Running Survey - Alpha Research Server{% endblock %}
+
+{% block content %}
+<div class="survey-running-header">
+    <button class="back-btn" onclick="confirmExit()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        <span>Exit Survey</span>
+    </button>
+    <div style="font-size: 13px; font-weight: 600; color: var(--text-muted);" id="surveyProgressCounter">
+        Question 1 of {{ questions|length }}
+    </div>
+</div>
+
+<!-- Survey Play Area -->
+<div class="glass-card" id="surveyRunnerCard">
+    <form id="surveyForm" onsubmit="submitSurvey(event)">
+        <div class="survey-runner-container">
+            {% for q in questions %}
+                {% set outer_loop_index = loop.index0 %}
+                <div class="survey-question-card {% if loop.first %}active{% endif %}" id="qCard_{{ outer_loop_index }}" data-type="{{ q.type }}">
+                    <h2 class="question-text">{{ loop.index }}. {{ q.text }}</h2>
+                    
+                    <div class="survey-options">
+                        {% for option in q.options %}
+                            <label class="survey-option-label" onclick="selectOption(this)">
+                                <input type="radio" name="q_{{ q.id }}" value="{{ option }}" required onchange="enableNextButton({{ outer_loop_index }})">
+                                <div class="option-indicator"></div>
+                                <span>{{ option }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+
+            <!-- Dynamic Progress Indicators -->
+            <div class="progress-container" style="margin-top: 30px; margin-bottom: 5px;">
+                <div class="progress-bar-bg" style="height: 6px;">
+                    <div class="progress-bar-fill" id="surveyPlayProgress" style="width: {{ (1 / questions|length) * 100 }}%;"></div>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="survey-nav-actions">
+                <button type="button" class="btn btn-secondary" id="btnPrev" onclick="prevQuestion()" style="display: none; width: auto; flex: 1;">
+                    <span>Previous</span>
+                </button>
+                <button type="button" class="btn" id="btnNext" onclick="nextQuestion()" disabled style="flex: 2;">
+                    <span id="btnNextText">Next Question</span>
+                    <svg id="btnNextIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Dynamic Success Celebrations Container -->
+<div class="glass-card success-card" id="surveySuccessCard">
+    <div class="checkmark-circle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    </div>
+    
+    <h1 style="font-size: 26px; font-weight: 800; margin-bottom: -5px;">Amazing Job!</h1>
+    <p style="color: var(--text-muted); font-size: 14px; max-width: 320px;">Your responses were compiled successfully and rewards were added directly to your pocket!</p>
+    
+    <div class="success-reward-display">
+        <span>+₹</span><span id="earnedValue">{{ "%.2f"|format(survey.reward) }}</span>
+    </div>
+
+    <a href="{{ url_for('dashboard') }}" class="btn" style="width: 100%; max-width: 280px; margin-top: 15px;">
+        <span>Return Dashboard</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+    </a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const totalQuestions = {{ questions|length }};
+    let currentIdx = 0;
+
+    // Trigger visual selection feedback when a option row is clicked
+    function selectOption(labelElement) {
+        // Find sibling labels in the same question container
+        const siblings = labelElement.closest('.survey-options').querySelectorAll('.survey-option-label');
+        siblings.forEach(el => el.classList.remove('selected'));
+        
+        // Mark clicked as selected
+        labelElement.classList.add('selected');
+    }
+
+    // Enable button once any option is checked
+    function enableNextButton(questionIdx) {
+        if (questionIdx === currentIdx) {
+            document.getElementById('btnNext').removeAttribute('disabled');
+        }
+    }
+
+    // Confirm prior to abandoning active survey
+    function confirmExit() {
+        if (confirm("Are you sure you want to abandon this survey? You will lose progress and rewards!")) {
+            window.location.href = "{{ url_for('dashboard') }}";
+        }
+    }
+
+    function updateProgressBar() {
+        const percent = ((currentIdx + 1) / totalQuestions) * 100;
+        document.getElementById('surveyPlayProgress').style.width = percent + '%';
+        document.getElementById('surveyProgressCounter').innerText = `Question ${currentIdx + 1} of ${totalQuestions}`;
+    }
+
+    // Progress forward to next question
+    function nextQuestion() {
+        // Double check input selected
+        const currentCard = document.getElementById(`qCard_${currentIdx}`);
+        const inputs = currentCard.querySelectorAll('input[type="radio"]');
+        let selected = false;
+        inputs.forEach(input => {
+            if (input.checked) selected = true;
+        });
+
+        if (!selected) {
+            alert('Please select an option before moving forward.');
+            return;
+        }
+
+        if (currentIdx < totalQuestions - 1) {
+            // Hide current
+            currentCard.classList.remove('active');
+            
+            // Increment
+            currentIdx++;
+            
+            // Show next
+            const nextCard = document.getElementById(`qCard_${currentIdx}`);
+            nextCard.classList.add('active');
+            
+            // Show/hide previous button
+            document.getElementById('btnPrev').style.display = 'block';
+            
+            // Check if next is already answered
+            const nextInputs = nextCard.querySelectorAll('input[type="radio"]');
+            let nextAnswered = false;
+            nextInputs.forEach(input => {
+                if (input.checked) nextAnswered = true;
+            });
+            
+            if (!nextAnswered) {
+                document.getElementById('btnNext').setAttribute('disabled', 'true');
+            } else {
+                document.getElementById('btnNext').removeAttribute('disabled');
+            }
+
+            // If it's the last question, switch text to "Submit Survey"
+            if (currentIdx === totalQuestions - 1) {
+                document.getElementById('btnNextText').innerText = 'Submit Survey';
+            }
+            
+            updateProgressBar();
+        } else {
+            // Last question, submit form
+            submitSurvey();
+        }
+    }
+
+    // Step backward to previous question
+    function prevQuestion() {
+        if (currentIdx > 0) {
+            // Hide current
+            document.getElementById(`qCard_${currentIdx}`).classList.remove('active');
+            
+            // Decrement
+            currentIdx--;
+            
+            // Show prev
+            document.getElementById(`qCard_${currentIdx}`).classList.add('active');
+            
+            // Check if first
+            if (currentIdx === 0) {
+                document.getElementById('btnPrev').style.display = 'none';
+            }
+            
+            // Restore Next text
+            document.getElementById('btnNextText').innerText = 'Next Question';
+            document.getElementById('btnNext').removeAttribute('disabled');
+            
+            updateProgressBar();
+        }
+    }
+
+    // AJAX Form submit to prevent full-page reload
+    function submitSurvey(event) {
+        if (event) event.preventDefault();
+        
+        const formElement = document.getElementById('surveyForm');
+        const formData = new FormData(formElement);
+        
+        // Send request
+        fetch("{{ url_for('survey_submit', survey_id=survey.id) }}", {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // Transition displays
+                document.getElementById('surveyRunnerCard').style.display = 'none';
+                document.querySelector('.survey-running-header').style.display = 'none';
+                
+                const successCard = document.getElementById('surveySuccessCard');
+                successCard.style.display = 'flex';
+                
+                // Real-time animation count in header
+                animateValue('headerBalanceValue', parseFloat(document.getElementById('headerBalanceValue').innerText), data.new_balance, 800);
+            } else {
+                alert('Submission Error: ' + data.message);
+            }
+        })
+        .catch(err => {
+            console.error('Error submitting survey:', err);
+            alert('Something went wrong. Please try again.');
+        });
+    }
+
+    // Number roll counters
+    function animateValue(objId, start, end, duration) {
+        const obj = document.getElementById(objId);
+        if (!obj) return;
+        const range = end - start;
+        let current = start;
+        const increment = range / (duration / 16);
+        const timer = setInterval(() => {
+            current += increment;
+            if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                current = end;
+                clearInterval(timer);
+            }
+            obj.innerHTML = current.toFixed(2);
+        }, 16);
+    }
+</script>
+{% endblock %}
