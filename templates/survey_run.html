@@ -65,7 +65,7 @@
     <p style="color: var(--text-muted); font-size: 14px; max-width: 320px;">Your responses were compiled successfully and rewards were added directly to your pocket!</p>
     
     <div class="success-reward-display">
-        <span>+₹</span><span id="earnedValue">{{ "%.2f"|format(survey.reward) }}</span>
+        <span>+$</span><span id="earnedValue">{{ "%.2f"|format(survey.reward) }}</span>
     </div>
 
     <a href="{{ url_for('dashboard') }}" class="btn" style="width: 100%; max-width: 280px; margin-top: 15px;">

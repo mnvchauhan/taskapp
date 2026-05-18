@@ -23,7 +23,7 @@
                 <!-- Balance Card inside Sidebar -->
                 <div class="sidebar-balance-card">
                     <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700;">Your Balance</div>
-                    <div class="sidebar-balance-value">₹{{ "%.2f"|format(g.user.balance) }}</div>
+                    <div class="sidebar-balance-value">${{ "%.2f"|format(g.user.balance) }}</div>
                 </div>
 
                 <!-- Nav links in Sidebar -->
@@ -67,7 +67,7 @@
                 </div>
                 {% if session.get('user_id') and g.user %}
                     <a href="{{ url_for('wallet') }}" class="header-balance" id="headerBalanceBtn">
-                        <span class="balance-currency">₹</span><span id="headerBalanceValue">{{ "%.2f"|format(g.user.balance) }}</span>
+                        <span class="balance-currency">$</span><span id="headerBalanceValue">{{ "%.2f"|format(g.user.balance) }}</span>
                     </a>
                 {% endif %}
             </header>

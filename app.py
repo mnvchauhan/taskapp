@@ -102,8 +102,8 @@ def dashboard():
     
     available_surveys = Survey.query.filter(~Survey.id.in_(completed_survey_ids) if completed_survey_ids else True).all()
     
-    # Calculate progress toward withdrawal goal (e.g., ₹200 threshold)
-    threshold = 200.0
+    # Calculate progress toward withdrawal goal (e.g., $50 threshold)
+    threshold = 50.0
     progress_percent = min(100, int((g.user.balance / threshold) * 100))
     
     return render_template(
@@ -163,8 +163,8 @@ def login():
             hashed_pwd = generate_password_hash(password)
             new_code = generate_ref_code()
             
-            # Give welcome bonus (e.g., ₹10) if they used a referral code, or nothing if normal
-            initial_balance = 10.0 if referred_by_user else 0.0
+            # Give welcome bonus (e.g., $2) if they used a referral code, or nothing if normal
+            initial_balance = 2.0 if referred_by_user else 0.0
             
             new_user = User(
                 username=username,
@@ -178,12 +178,12 @@ def login():
             db.session.add(new_user)
             db.session.commit()
             
-            # Credit the referrer (e.g., ₹20) instantly
+            # Credit the referrer (e.g., $5) instantly
             if referred_by_user:
-                referred_by_user.balance += 20.0
+                referred_by_user.balance += 5.0
                 ref_txn = Transaction(
                     user_id=referred_by_user.id,
-                    amount=20.0,
+                    amount=5.0,
                     type='earnings',
                     status='completed',
                     method='Referral Bonus',
@@ -194,7 +194,7 @@ def login():
                 # Create a welcome balance txn for the new user too
                 new_user_txn = Transaction(
                     user_id=new_user.id,
-                    amount=10.0,
+                    amount=2.0,
                     type='earnings',
                     status='completed',
                     method='Welcome Bonus',
@@ -269,7 +269,7 @@ def survey_submit(survey_id):
     
     return jsonify({
         'success': True,
-        'message': f'Thank you! ₹{survey.reward:.2f} credited to your wallet.',
+        'message': f'Thank you! ${survey.reward:.2f} credited to your wallet.',
         'reward': survey.reward,
         'new_balance': g.user.balance
     })
@@ -277,14 +277,14 @@ def survey_submit(survey_id):
 @app.route('/wallet', methods=['GET', 'POST'])
 @login_required
 def wallet():
-    threshold = 200.0
+    threshold = 50.0
     if request.method == 'POST':
         method = request.form.get('method')
         details = request.form.get('details', '').strip()
         amount_to_withdraw = g.user.balance
         
         if amount_to_withdraw < threshold:
-            flash(f'Minimum withdrawal limit is ₹{threshold:.2f}.', 'error')
+            flash(f'Minimum withdrawal limit is ${threshold:.2f}.', 'error')
             return redirect(url_for('wallet'))
             
         if not details:
@@ -305,7 +305,7 @@ def wallet():
         db.session.add(txn)
         db.session.commit()
         
-        flash(f'Withdrawal request of ₹{amount_to_withdraw:.2f} submitted successfully! It will be processed in 24 hours.', 'success')
+        flash(f'Withdrawal request of ${amount_to_withdraw:.2f} submitted successfully! It will be processed in 24 hours.', 'success')
         return redirect(url_for('wallet'))
         
     # Get transaction history
@@ -391,7 +391,7 @@ def seed_surveys():
     surveys_data = [
         {
             "title": "⚡️ Quick Onboarding Survey",
-            "reward": 15.0,
+            "reward": 5.0,
             "estimated_time": 2,
             "rating": 5.0,
             "category": "Onboarding",
@@ -418,7 +418,7 @@ def seed_surveys():
         },
         {
             "title": "📱 Mobile Tech & Brands Preference",
-            "reward": 45.0,
+            "reward": 8.0,
             "estimated_time": 5,
             "rating": 4.8,
             "category": "Technology",
@@ -451,7 +451,7 @@ def seed_surveys():
         },
         {
             "title": "🍔 Food Delivery & Dining Habits",
-            "reward": 80.0,
+            "reward": 12.0,
             "estimated_time": 10,
             "rating": 4.6,
             "category": "Lifestyle",
@@ -484,7 +484,7 @@ def seed_surveys():
         },
         {
             "title": "✈️ Travel & Vacation Destinations",
-            "reward": 120.0,
+            "reward": 15.0,
             "estimated_time": 15,
             "rating": 4.7,
             "category": "Travel",
@@ -517,7 +517,7 @@ def seed_surveys():
         },
         {
             "title": "📺 Entertainment & Streaming Consumption",
-            "reward": 30.0,
+            "reward": 6.0,
             "estimated_time": 4,
             "rating": 4.5,
             "category": "Entertainment",

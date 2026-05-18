@@ -7,7 +7,7 @@
 <div class="balance-hero" style="background: linear-gradient(135deg, var(--bg-card) 40%, rgba(37, 99, 235, 0.05) 100%);">
     <div class="balance-title">Your Current Earnings</div>
     <div class="balance-amount">
-        <span class="balance-currency" style="color: var(--primary);">₹</span>
+        <span class="balance-currency" style="color: var(--primary);">$</span>
         <span id="heroBalanceValue">{{ "%.2f"|format(g.user.balance) }}</span>
     </div>
     
@@ -15,7 +15,7 @@
     <div class="progress-container">
         <div class="progress-header">
             <span>Progress to Minimum Payout</span>
-            <span id="progressText">{{ progress_percent }}% (₹{{ "%.0f"|format(threshold) }} min)</span>
+            <span id="progressText">{{ progress_percent }}% (${{ "%.0f"|format(threshold) }} min)</span>
         </div>
         <div class="progress-bar-bg">
             <div class="progress-bar-fill" id="dashboardProgressBar" style="width: {{ progress_percent }}%;"></div>
@@ -48,7 +48,7 @@
                     </div>
                 </div>
                 <div class="survey-reward-badge">
-                    <span class="reward-value">₹{{ "%.2f"|format(survey.reward) }}</span>
+                    <span class="reward-value">${{ "%.2f"|format(survey.reward) }}</span>
                     <div class="reward-arrow">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                     </div>
@@ -63,7 +63,7 @@
             <p style="color: var(--text-muted); font-size: 13px; max-width: 280px; margin: 0 auto 20px;">You have completed all available surveys. Check back later for fresh polls and higher earnings!</p>
             <a href="{{ url_for('referrals') }}" class="btn btn-secondary">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                <span>Invite Friends for ₹20.00</span>
+                <span>Invite Friends for $5.00</span>
             </a>
         </div>
     {% endif %}

@@ -7,14 +7,14 @@
 <div class="balance-hero" style="margin-bottom: 20px; background: linear-gradient(135deg, var(--bg-card) 40%, rgba(37, 99, 235, 0.05) 100%);">
     <div class="balance-title">Available Payout Balance</div>
     <div class="balance-amount">
-        <span class="balance-currency" style="color: var(--primary);">₹</span>
+        <span class="balance-currency" style="color: var(--primary);">$</span>
         <span>{{ "%.2f"|format(g.user.balance) }}</span>
     </div>
     
     <div class="progress-container">
         <div class="progress-header">
             <span>Threshold for withdrawal</span>
-            <span>{{ progress_percent }}% (₹{{ "%.0f"|format(threshold) }} required)</span>
+            <span>{{ progress_percent }}% (${{ "%.0f"|format(threshold) }} required)</span>
         </div>
         <div class="progress-bar-bg">
             <div class="progress-bar-fill" style="width: {{ progress_percent }}%;"></div>
@@ -66,11 +66,11 @@
             </div>
             
             <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.4;">
-                ⚠️ You are cashing out your entire balance of <strong>₹{{ "%.2f"|format(g.user.balance) }}</strong>. Please double-check your credentials as transactions cannot be reversed once processed.
+                ⚠️ You are cashing out your entire balance of <strong>${{ "%.2f"|format(g.user.balance) }}</strong>. Please double-check your credentials as transactions cannot be reversed once processed.
             </p>
 
             <button type="submit" class="btn">
-                <span>Request Payout (₹{{ "%.2f"|format(g.user.balance) }})</span>
+                <span>Request Payout (${{ "%.2f"|format(g.user.balance) }})</span>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             </button>
         </form>
@@ -80,7 +80,7 @@
             <div style="font-size: 24px; margin-bottom: 8px;">🔒</div>
             <h4 style="font-size: 15px; margin-bottom: 4px; font-weight: 700;">Payout Locked</h4>
             <p style="color: var(--text-muted); font-size: 12px; line-height: 1.4; max-width: 290px; margin: 0 auto 14px;">
-                You need a minimum balance of <strong>₹{{ "%.2f"|format(threshold) }}</strong> to request a payout. Complete more surveys to unlock withdrawals.
+                You need a minimum balance of <strong>${{ "%.2f"|format(threshold) }}</strong> to request a payout. Complete more surveys to unlock withdrawals.
             </p>
             <a href="{{ url_for('dashboard') }}" class="btn btn-secondary" style="font-size: 13px; padding: 10px 14px; width: auto; display: inline-flex;">
                 <span>View Available Surveys</span>
@@ -105,7 +105,7 @@
                 </div>
                 <div class="txn-value-status">
                     <span class="txn-amount {% if txn.amount > 0 %}positive{% else %}negative{% endif %}" style="color: {% if txn.amount > 0 %}var(--primary){% else %}var(--danger){% endif %};">
-                        {% if txn.amount > 0 %}+{% endif %}₹{{ "%.2f"|format(txn.amount) }}
+                        {% if txn.amount > 0 %}+{% endif %}${{ "%.2f"|format(txn.amount) }}
                     </span>
                     <span class="status-badge status-{{ txn.status }}">
                         {{ txn.status }}

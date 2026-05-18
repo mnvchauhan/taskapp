@@ -70,19 +70,19 @@ class TestAttaPollClone(unittest.TestCase):
         html_bob = res_ref.data.decode('utf-8')
         
         with app.app_context():
-            # Bob gets ₹10 welcome bonus
+            # Bob gets $2 welcome bonus
             bob = User.query.filter_by(email='bob@test.com').first()
             self.assertIsNotNone(bob, "Bob should be registered successfully in the DB!")
-            self.assertEqual(bob.balance, 10.0)
+            self.assertEqual(bob.balance, 2.0)
             
-            # Tester gets ₹20 referral bonus
+            # Tester gets $5 referral bonus
             tester = User.query.filter_by(email='tester@test.com').first()
-            self.assertEqual(tester.balance, 20.0)
+            self.assertEqual(tester.balance, 5.0)
             
             # Verify transaction logged
             tester_txn = Transaction.query.filter_by(user_id=tester.id, type='earnings').first()
             self.assertIsNotNone(tester_txn)
-            self.assertEqual(tester_txn.amount, 20.0)
+            self.assertEqual(tester_txn.amount, 5.0)
             self.assertEqual(tester_txn.method, 'Referral Bonus')
 
         # 3. Test Dashboard loading
@@ -104,25 +104,25 @@ class TestAttaPollClone(unittest.TestCase):
         self.assertEqual(survey_submit_res.status_code, 200)
         data = json.loads(survey_submit_res.data.decode('utf-8'))
         self.assertTrue(data['success'])
-        self.assertEqual(data['reward'], 15.0)
-        self.assertEqual(data['new_balance'], 25.0) # 10 welcome + 15 reward = 25.0
+        self.assertEqual(data['reward'], 5.0)
+        self.assertEqual(data['new_balance'], 7.0) # 2 welcome + 5 reward = 7.0
 
         # 5. Check Bob wallet and progress percentage
         wallet_res = self.client.get('/wallet')
         self.assertEqual(wallet_res.status_code, 200)
         wallet_html = wallet_res.data.decode('utf-8')
         self.assertIn('Available Payout Balance', wallet_html)
-        # Current balance is ₹25, threshold is 200, so progress is (25/200)*100 = 12%
-        self.assertIn('12% (₹200 required)', wallet_html)
+        # Current balance is $7, threshold is 50, so progress is (7/50)*100 = 14%
+        self.assertIn('14% ($50 required)', wallet_html)
 
-        # 6. Test cashout block when balance < threshold (₹200)
+        # 6. Test cashout block when balance < threshold ($50)
         # If Bob attempts to POST a withdrawal, the route redirects and flashes limit error
         cashout_res = self.client.post('/wallet', data={
             'method': 'PayPal',
             'details': 'bob@paypal.com'
         }, follow_redirects=True)
         cashout_html = cashout_res.data.decode('utf-8')
-        self.assertIn('Minimum withdrawal limit is ₹200.00', cashout_html)
+        self.assertIn('Minimum withdrawal limit is $50.00', cashout_html)
 
 if __name__ == '__main__':
     unittest.main()
